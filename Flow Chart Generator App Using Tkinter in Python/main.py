@@ -9,9 +9,7 @@ from graphviz import Digraph
 import ast
 from PIL import Image, ImageGrab
 
-# =====================================================
-# CODE → FLOWCHART (FULLY COMPATIBLE)
-# =====================================================
+
 def generate_flowchart_from_code(code):
     try:
         tree = ast.parse(code)
@@ -89,9 +87,7 @@ def generate_flowchart_from_code(code):
     new_node("End", "oval")
     dot.render("code_flowchart", view=True)
 
-# =====================================================
-# DRAG & DROP NODE WITH CONNECTORS
-# =====================================================
+
 class CanvasNode:
     def __init__(self, app, canvas, x, y, text, shape):
         self.app = app
@@ -101,16 +97,15 @@ class CanvasNode:
         self.lines = []
 
         if shape == "oval":
-            self.body = canvas.create_oval(x, y, x+120, y+50, fill="lightgreen")
+            self.body = canvas.create_oval(x, y, x + 120, y + 50, fill="lightgreen")
         elif shape == "diamond":
             self.body = canvas.create_polygon(
-                x+60, y, x+120, y+25, x+60, y+50, x, y+25,
-                fill="khaki"
+                x + 60, y, x + 120, y + 25, x + 60, y + 50, x, y + 25, fill="khaki"
             )
         else:
-            self.body = canvas.create_rectangle(x, y, x+120, y+50, fill="lightblue")
+            self.body = canvas.create_rectangle(x, y, x + 120, y + 50, fill="lightblue")
 
-        self.text = canvas.create_text(x+60, y+25, text=text)
+        self.text = canvas.create_text(x + 60, y + 25, text=text)
 
         for item in (self.body, self.text):
             canvas.tag_bind(item, "<Button-1>", self.select)
@@ -119,14 +114,13 @@ class CanvasNode:
 
     def center(self):
         x1, y1, x2, y2 = self.canvas.bbox(self.body)
-        return (x1+x2)//2, (y1+y2)//2
+        return (x1 + x2) // 2, (y1 + y2) // 2
 
     def select(self, event):
         self.app.selected_node = self
         self.app.last_x = event.x
         self.app.last_y = event.y
 
-        # Handle manual connection
         if self.app.connecting:
             if not self.app.src_node:
                 self.app.src_node = self
@@ -137,7 +131,6 @@ class CanvasNode:
                 x2, y2 = tgt_node.center()
                 line = self.canvas.create_line(x1, y1, x2, y2, arrow=tk.LAST)
                 self.app.src_node.lines.append((line, tgt_node))
-                # Reset outline
                 self.app.canvas.itemconfig(self.app.src_node.body, outline="black", width=1)
                 self.app.connecting = False
                 self.app.src_node = None
@@ -176,13 +169,11 @@ class CanvasNode:
             self.text_label = new_text
             self.canvas.itemconfig(self.text, text=new_text)
 
-# =====================================================
-# MAIN APPLICATION
-# =====================================================
+
 class FlowchartApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Flowchart Generator")
+        self.root.title("MASA FlowChart Architect")
         self.root.geometry("900x600")
 
         self.nodes = []
@@ -205,10 +196,11 @@ class FlowchartApp:
         self.code_box = tk.Text(tab, height=18)
         self.code_box.pack(fill="both", expand=True, padx=10)
 
-        ttk.Button(tab, text="Generate Flowchart",
-                   command=lambda: generate_flowchart_from_code(
-                       self.code_box.get("1.0", tk.END))
-                   ).pack(pady=10)
+        ttk.Button(
+            tab,
+            text="Generate Flowchart",
+            command=lambda: generate_flowchart_from_code(self.code_box.get("1.0", tk.END)),
+        ).pack(pady=10)
 
     def create_canvas_tab(self, notebook):
         tab = ttk.Frame(notebook)
@@ -217,21 +209,22 @@ class FlowchartApp:
         toolbar = ttk.Frame(tab)
         toolbar.pack(pady=5)
 
-        ttk.Button(toolbar, text="Start",
-                   command=lambda: self.add_node("Start", "oval")).pack(side="left", padx=5)
-        ttk.Button(toolbar, text="Process",
-                   command=lambda: self.add_node("Process", "rect")).pack(side="left", padx=5)
-        ttk.Button(toolbar, text="Decision",
-                   command=lambda: self.add_node("Decision", "diamond")).pack(side="left", padx=5)
-        ttk.Button(toolbar, text="End",
-                   command=lambda: self.add_node("End", "oval")).pack(side="left", padx=5)
+        ttk.Button(toolbar, text="Start", command=lambda: self.add_node("Start", "oval")).pack(
+            side="left", padx=5
+        )
+        ttk.Button(toolbar, text="Process", command=lambda: self.add_node("Process", "rect")).pack(
+            side="left", padx=5
+        )
+        ttk.Button(toolbar, text="Decision", command=lambda: self.add_node("Decision", "diamond")).pack(
+            side="left", padx=5
+        )
+        ttk.Button(toolbar, text="End", command=lambda: self.add_node("End", "oval")).pack(
+            side="left", padx=5
+        )
 
-        ttk.Button(toolbar, text="Connect",
-                   command=self.connect_nodes).pack(side="left", padx=10)
-        ttk.Button(toolbar, text="Delete Selected",
-                   command=self.delete_node).pack(side="left", padx=5)
-        ttk.Button(toolbar, text="Save Canvas",
-                   command=self.save_canvas).pack(side="left", padx=5)
+        ttk.Button(toolbar, text="Connect", command=self.connect_nodes).pack(side="left", padx=10)
+        ttk.Button(toolbar, text="Delete Selected", command=self.delete_node).pack(side="left", padx=5)
+        ttk.Button(toolbar, text="Save Canvas", command=self.save_canvas).pack(side="left", padx=5)
 
         self.canvas = tk.Canvas(tab, bg="white")
         self.canvas.pack(fill="both", expand=True)
@@ -256,16 +249,13 @@ class FlowchartApp:
         self.nodes.remove(self.selected_node)
         self.selected_node = None
 
-    # =====================================================
-    # =====================================================
     def save_canvas(self):
         if not self.nodes:
             messagebox.showwarning("Warning", "No nodes to save!")
             return
 
         file_path = filedialog.asksaveasfilename(
-            defaultextension=".png",
-            filetypes=[("PNG files", "*.png"), ("JPG files", "*.jpg")]
+            defaultextension=".png", filetypes=[("PNG files", "*.png"), ("JPG files", "*.jpg")]
         )
         if not file_path:
             return
@@ -273,7 +263,6 @@ class FlowchartApp:
         self.canvas.update()
 
         try:
-            # Get canvas coordinates on screen
             x = self.canvas.winfo_rootx()
             y = self.canvas.winfo_rooty()
             x1 = x + self.canvas.winfo_width()
@@ -290,9 +279,7 @@ class FlowchartApp:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save image: {e}")
 
-# =====================================================
-# RUN
-# =====================================================
+
 if __name__ == "__main__":
     root = tk.Tk()
     FlowchartApp(root)
